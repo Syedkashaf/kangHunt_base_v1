@@ -1,18 +1,32 @@
 import logging
 import asyncio
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Header, Depends
-from typing import List, Dict, Any
+
+# =========================================================================
+# LOAD ENVIRONMENT VARIABLES - HANDLE NESTED DIRECTORIES
+# =========================================================================
+# Try multiple paths to find .env (in case of nested directories)
+env_paths = [
+    Path(".env"),                    # Current directory
+    Path("../.env"),                 # Parent directory
+    Path("../../.env"),              # Two levels up
+]
+
+for env_file in env_paths:
+    if env_file.exists():
+        load_dotenv(env_file)
+        print(f"[✓] Loaded .env from: {env_file.absolute()}")
+        break
 
 # =========================================================================
 # CONFIGURATION LAYER: SUPPRESSING HTTPX LOGGER CONFLICTS
 # =========================================================================
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-# Load environment variables
-load_dotenv()
-
+from fastapi import FastAPI, HTTPException, Header, Depends
+from typing import List, Dict, Any
 from models.schemas import NormalizedScanReport, UnifiedProfile, PluginResponse
 from plugins.gravatar_plugin import GravatarPlugin
 from plugins.holehe_plugin import HolehePlugin
@@ -27,8 +41,11 @@ app = FastAPI(title="Precision OSINT Core Engine")
 # SECURITY ACCESS KEY ENFORCER
 # =========================================================================
 API_KEY = os.getenv("CORE_API_KEY")
+
 if not API_KEY:
-    raise ValueError("❌ CRITICAL ERROR: CORE_API_KEY environment variable not set. Add it to .env file.")
+    print("\n⚠️  WARNING: CORE_API_KEY not set in environment!")
+    print("   The server will reject all API requests.")
+    print("   Make sure .env file exists with CORE_API_KEY=your_key\n")
 
 async def verify_api_key(x_api_key: str = Header(...)):
     if x_api_key != API_KEY:

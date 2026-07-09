@@ -11,10 +11,24 @@ import logging
 from datetime import datetime
 import json
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# =========================================================================
+# LOAD ENVIRONMENT VARIABLES - HANDLE NESTED DIRECTORIES
+# =========================================================================
+# Try multiple paths to find .env (in case of nested directories)
+env_paths = [
+    Path(".env"),                    # Current directory
+    Path("../.env"),                 # Parent directory
+    Path("../../.env"),              # Two levels up
+]
+
+for env_file in env_paths:
+    if env_file.exists():
+        load_dotenv(env_file)
+        print(f"[✓] Loaded .env from: {env_file.absolute()}")
+        break
 
 # =========================================================================
 # COLOR ENGINE — Ultra-Vibrant Neon Cyberpunk Palette (24-bit True Color)
@@ -66,7 +80,7 @@ def row(text, color=WHITE):
     print(f" {color}│{RESET}   {text}")
     
 def end_section(color=WHITE):
-    print(f" {color}╰{'─' * (WIDTH - 4)}{RESET}\n")
+    print(f" {color}╰{"─" * (WIDTH - 4)}{RESET}\n")
 
 def display_engine_banner():
     # Sleek "Kashif" ASCII Art (Case Sensitive) wrapped in a 6-color Neon Gradient
@@ -87,7 +101,7 @@ def display_engine_banner():
     dc = f"{BOLD}{DISCORD_CLR}Discord:Syedkashaf{RESET}"
     
     print(f" {gh} {BOLD}{DIM}|{RESET} {ig} {BOLD}{DIM}|{RESET} {dc}")
-    print(f"\n{DIM}  {'─' * (WIDTH - 4)}{RESET}\n")
+    print(f"\n{DIM}  {"─" * (WIDTH - 4)}{RESET}\n")
 
 def risk_meter(level):
     lvl = str(level).strip().lower()
@@ -159,9 +173,9 @@ def render_profile(payload):
             or profile.get("username") or "Unknown Identity")
             
     # High-tech standalone identifier block
-    print(f" {CYAN}╭{'─' * (WIDTH - 4)}╮{RESET}")
+    print(f" {CYAN}╭{"─" * (WIDTH - 4)}╮{RESET}")
     print(f" {CYAN}│{RESET} {BOLD}{WHITE}SUBJECT IDENTITY:{RESET} {name}") 
-    print(f" {CYAN}╰{'─' * (WIDTH - 4)}╯{RESET}\n")
+    print(f" {CYAN}╰{"─" * (WIDTH - 4)}╯{RESET}\n")
 
     threat = profile.get("threat_level", "Low")
     gaia = profile.get("gaia_id") or "Not Linked / Hidden"
@@ -221,27 +235,6 @@ DEMO_PAYLOAD = {
         "total_breaches_found": 0,
     },
 }
-# ---------------------------------------------------------
-# PHASE 5: DATA PERSISTENCE & REPORT GENERATION
-# ---------------------------------------------------------
-def export_report(target_email, aggregated_data):
-    # Reports folder create karein agar exist nahi karta
-    if not os.path.exists('reports'):
-        os.makedirs('reports')
-        
-    # Unique filename generate karein timestamp ke sath
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filepath = f"reports/{target_email}_{timestamp}.json"
-    
-    # Data ko disk par write karein
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(aggregated_data, f, indent=4)
-        
-    print(f"  [+] Intelligence persistently exported to : {filepath}")
-
-# Jab aapka engine data collect kar le, toh is function ko call karein:
-# export_report(target_email, final_intelligence_dictionary)
-
 
 # =========================================================================
 # CLIENT ENTRYPOINT
@@ -275,9 +268,11 @@ def run_client():
 
         if api_response.status_code == 401:
             print(f"  {RED}{BOLD}[!] Access Denied: Subsystem rejected the X-API-Key credentials.{RESET}")
+            print(f"  {YELLOW}[*] Debugging: Check that CORE_API_KEY in .env matches what's running on the server.{RESET}")
             return
         elif api_response.status_code != 200:
             print(f"  {RED}{BOLD}[!] Pipeline Failure: Node communication exception (Code: {api_response.status_code}).{RESET}")
+            print(f"  {YELLOW}[*] Response: {api_response.text}{RESET}")
             return
 
         payload = api_response.json()
