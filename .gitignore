@@ -1,0 +1,43 @@
+# ==========================================
+# INTELBASE Core Framework - Git Ignore Rules
+# ==========================================
+
+# 1. OSINT Runtime Context / Cached Targets
+*.json
+*.txt
+*.log
+reports/
+dumps/
+ghunt_state_*
+ghunt_dump_*
+inspect.json
+
+# 2. Upstream Plugin Authentication Secrets (GHunt / Custom Modules)
+.malfrats/
+.ghunt/
+creds.m
+*.key
+*.pem
+credentials.json
+token.pickle
+.env
+
+# 3. Python Ecosystem Engineering Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.pypy/
+.venv/
+venv/
+ENV/
+env/
+
+# 4. Mobile System & Termux Environmental Residues
+.DS_Store
+.directory
+.pcap
+.db
+venv/
+osint_cache.db
+*.db
