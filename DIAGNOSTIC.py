@@ -172,9 +172,10 @@ def print_troubleshooting():
     → Then: cat .env  (verify it was created)
 
 2️⃣  "Access Denied: Subsystem rejected the X-API-Key credentials"
-    → The API key in .env doesn't match what scanner is sending
-    → Make sure BOTH terminals can see the same .env file
-    → Run: cat .env  to check
+    → You're in the WRONG directory (nested kantHunt_base_v1 folder)
+    → Run: cd ~/kangHunt_base_v1
+    → Verify: ls -la  (should show main.py, scanner.py, .env)
+    → Check: cat .env  (make sure CORE_API_KEY is there)
 
 3️⃣  "ModuleNotFoundError: No module named 'fastapi'"
     → Run: pip install -r requirements.txt
