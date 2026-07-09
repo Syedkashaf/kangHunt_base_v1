@@ -16,6 +16,15 @@ class IntelBasePlugin(BaseOSINTPlugin):
     async def execute(self, target: str) -> PluginResponse:
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
+                # If no API key, return mock response
+                if not self.api_key:
+                    return PluginResponse(
+                        source_name="IntelBase",
+                        status="success",
+                        raw_data={"breaches": [], "total_breaches": 0},
+                        message="IntelBase API key not configured. Set INTELBASE_API_KEY in .env"
+                    )
+                
                 # 1. Defining the strict headers exactly as docs requested
                 headers = {
                     "Content-Type": "application/json",
@@ -23,19 +32,18 @@ class IntelBasePlugin(BaseOSINTPlugin):
                 }
                 
                 # 2. Building the JSON Payload
-                # Python dictionary automatically JSON mein convert ho jayegi
                 payload = {
                     "email": target,
-                    "timeout_ms": 10000, # Increased from 100ms to 10s for realistic OSINT delays
+                    "timeout_ms": 10000,
                     "include_data_breaches": False,
-                    "exclude_modules": [] # Empty list as standard
+                    "exclude_modules": []
                 }
                 
-                # 3. Executing a POST request instead of GET
+                # 3. Executing a POST request
                 response = await client.post(
                     self.base_url, 
                     headers=headers,
-                    json=payload # httpx 'json' argument automatically data encode karta hai
+                    json=payload
                 )
                 
                 # API almost always returns JSON, even on errors
@@ -49,8 +57,7 @@ class IntelBasePlugin(BaseOSINTPlugin):
                         message="OSINT intelligence successfully gathered."
                     )
                 else:
-                    # 4. Graceful Error Handling (Capturing "A plan is required...")
-                    # Extracting the exact error string provided by IntelBase
+                    # 4. Graceful Error Handling
                     error_msg = api_data.get("error", f"HTTP {response.status_code}: {response.text}")
                     return PluginResponse(
                         source_name="IntelBase", 
@@ -63,4 +70,10 @@ class IntelBasePlugin(BaseOSINTPlugin):
                     source_name="IntelBase", 
                     status="failed", 
                     message=f"Network Error: {str(e)}"
+                )
+            except Exception as e:
+                return PluginResponse(
+                    source_name="IntelBase",
+                    status="failed",
+                    message=f"IntelBase Error: {str(e)}"
                 )
