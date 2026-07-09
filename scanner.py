@@ -12,11 +12,16 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 # =========================================================================
 # LOAD ENVIRONMENT VARIABLES - HANDLE NESTED DIRECTORIES
 # =========================================================================
+# Force reload - remove cached env vars
+if 'CORE_API_KEY' in os.environ:
+    del os.environ['CORE_API_KEY']
+
+from dotenv import load_dotenv
+
 # Try multiple paths to find .env (in case of nested directories)
 env_paths = [
     Path(".env"),                    # Current directory
@@ -24,11 +29,26 @@ env_paths = [
     Path("../../.env"),              # Two levels up
 ]
 
+env_loaded = False
 for env_file in env_paths:
     if env_file.exists():
-        load_dotenv(env_file)
+        load_dotenv(env_file, override=True)  # Force override
         print(f"[✓] Loaded .env from: {env_file.absolute()}")
+        env_loaded = True
         break
+
+if not env_loaded:
+    print(f"[!] WARNING: .env file not found in any expected location!")
+    print(f"[!] Current directory: {Path.cwd().absolute()}")
+
+# Verify API key is loaded
+api_key = os.getenv("CORE_API_KEY")
+if not api_key:
+    print(f"[!] ERROR: CORE_API_KEY not found in environment!")
+    print(f"[!] Please create .env file with: CORE_API_KEY=your_key")
+    sys.exit(1)
+else:
+    print(f"[✓] API Key loaded successfully: {api_key[:10]}...")
 
 # =========================================================================
 # COLOR ENGINE — Ultra-Vibrant Neon Cyberpunk Palette (24-bit True Color)
@@ -80,7 +100,7 @@ def row(text, color=WHITE):
     print(f" {color}│{RESET}   {text}")
     
 def end_section(color=WHITE):
-    print(f" {color}╰{"─" * (WIDTH - 4)}{RESET}\n")
+    print(f" {color}╰{'─' * (WIDTH - 4)}{RESET}\n")
 
 def display_engine_banner():
     # Sleek "Kashif" ASCII Art (Case Sensitive) wrapped in a 6-color Neon Gradient
@@ -101,7 +121,7 @@ def display_engine_banner():
     dc = f"{BOLD}{DISCORD_CLR}Discord:Syedkashaf{RESET}"
     
     print(f" {gh} {BOLD}{DIM}|{RESET} {ig} {BOLD}{DIM}|{RESET} {dc}")
-    print(f"\n{DIM}  {"─" * (WIDTH - 4)}{RESET}\n")
+    print(f"\n{DIM}  {'─' * (WIDTH - 4)}{RESET}\n")
 
 def risk_meter(level):
     lvl = str(level).strip().lower()
@@ -173,9 +193,9 @@ def render_profile(payload):
             or profile.get("username") or "Unknown Identity")
             
     # High-tech standalone identifier block
-    print(f" {CYAN}╭{"─" * (WIDTH - 4)}╮{RESET}")
+    print(f" {CYAN}╭{'─' * (WIDTH - 4)}╮{RESET}")
     print(f" {CYAN}│{RESET} {BOLD}{WHITE}SUBJECT IDENTITY:{RESET} {name}") 
-    print(f" {CYAN}╰{"─" * (WIDTH - 4)}╯{RESET}\n")
+    print(f" {CYAN}╰{'─' * (WIDTH - 4)}╯{RESET}\n")
 
     threat = profile.get("threat_level", "Low")
     gaia = profile.get("gaia_id") or "Not Linked / Hidden"
@@ -261,7 +281,7 @@ def run_client():
         print(f"  {BLUE}[*] Orchestrating asynchronous intelligence tasks... (Please wait){RESET}\n")
 
         gateway_url = f"http://127.0.0.1:8000/api/v1/scan/{target_email}"
-        request_headers = {"X-API-Key": os.getenv("CORE_API_KEY")}
+        request_headers = {"X-API-Key": api_key}  # Use the loaded API key
 
         with httpx.Client(timeout=105.0) as bridge:
             api_response = bridge.get(gateway_url, headers=request_headers)
@@ -285,6 +305,8 @@ def run_client():
         print(f"\n  {RED}[!] Aborted by user.{RESET}")
     except Exception as hardware_exception:
         print(f"  {RED}{BOLD}[!] Fatal Client Parsing Exception: {str(hardware_exception)}{RESET}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     run_client()
