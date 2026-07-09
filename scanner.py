@@ -11,6 +11,10 @@ import logging
 from datetime import datetime
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # =========================================================================
 # COLOR ENGINE — Ultra-Vibrant Neon Cyberpunk Palette (24-bit True Color)
@@ -264,8 +268,7 @@ def run_client():
         print(f"  {BLUE}[*] Orchestrating asynchronous intelligence tasks... (Please wait){RESET}\n")
 
         gateway_url = f"http://127.0.0.1:8000/api/v1/scan/{target_email}"
-        import os
-request_headers = {"X-API-Key": os.getenv("CORE_API_KEY")}
+        request_headers = {"X-API-Key": os.getenv("CORE_API_KEY")}
 
         with httpx.Client(timeout=105.0) as bridge:
             api_response = bridge.get(gateway_url, headers=request_headers)

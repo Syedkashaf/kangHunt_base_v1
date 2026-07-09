@@ -1,5 +1,7 @@
 import logging
 import asyncio
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Header, Depends
 from typing import List, Dict, Any
 
@@ -8,17 +10,25 @@ from typing import List, Dict, Any
 # =========================================================================
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
+# Load environment variables
+load_dotenv()
+
 from models.schemas import NormalizedScanReport, UnifiedProfile, PluginResponse
 from plugins.gravatar_plugin import GravatarPlugin
 from plugins.holehe_plugin import HolehePlugin
 from plugins.breach_plugin import BreachPlugin
 from plugins.ghunt_plugin import GHuntPlugin
+from plugins.social_plugin import SocialMediaPlugin
+from plugins.intelbase_plugin import IntelBasePlugin
 
 app = FastAPI(title="Precision OSINT Core Engine")
 
-# Security Access Key Enforcer
-import os
+# =========================================================================
+# SECURITY ACCESS KEY ENFORCER
+# =========================================================================
 API_KEY = os.getenv("CORE_API_KEY")
+if not API_KEY:
+    raise ValueError("❌ CRITICAL ERROR: CORE_API_KEY environment variable not set. Add it to .env file.")
 
 async def verify_api_key(x_api_key: str = Header(...)):
     if x_api_key != API_KEY:
@@ -26,7 +36,14 @@ async def verify_api_key(x_api_key: str = Header(...)):
     return x_api_key
 
 # Asynchronous Micro-Plugin Task Pool Registry
-plugins = [GravatarPlugin(), HolehePlugin(), BreachPlugin(), GHuntPlugin()]
+plugins = [
+    GravatarPlugin(), 
+    HolehePlugin(), 
+    BreachPlugin(), 
+    GHuntPlugin(),
+    SocialMediaPlugin(),
+    IntelBasePlugin()
+]
 
 # =========================================================================
 # INTEL COMPRESSION LAYER: NORMALIZATION MAPPER ENGINE
@@ -134,6 +151,22 @@ def normalize_intelligence_payload(target: str, raw_results: List[PluginResponse
             for service_key in ["calendar", "photos", "play_games", "drive", "meet"]:
                 if deep_harvest(service_key, data):
                     active_platforms.append(f"Google {service_key.capitalize()}")
+        
+        # 5. Social Media Plugin Extraction
+        elif "SocialMedia" in source:
+            if isinstance(data, list):
+                active_platforms.extend(data)
+            elif isinstance(data, dict):
+                active_platforms.append(data)
+        
+        # 6. IntelBase Breach Intelligence Extraction
+        elif "IntelBase" in source:
+            breaches = deep_harvest("breaches", data) or deep_harvest("exposed_in", data) or []
+            if isinstance(breaches, list):
+                breached_sites.extend(breaches)
+            intelbase_total = deep_harvest("total_breaches", data) or 0
+            if intelbase_total > 0:
+                profile.total_breaches_found = max(profile.total_breaches_found, int(intelbase_total))
 
     # Final Deduplication & Clean Up
     profile.registered_platforms = list(set([str(p) for p in active_platforms if p]))
