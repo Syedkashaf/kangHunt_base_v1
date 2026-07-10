@@ -1,5 +1,42 @@
-fastapi>=0.100.0
-uvicorn>=0.22.0
-httpx[http2]>=0.24.0
-pydantic>=2.0
-python-dotenv>=1.0.0
+# Core Dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+requests==2.31.0
+aiohttp==3.9.0
+aiofiles==23.2.1
+
+# GHunt v2.3.4 Dependencies
+httpx[http2]==0.27.2
+geopy==2.4.1
+images==1.0.0
+imagehash==4.3.1
+pillow==12.1.0
+python-dateutil==2.9.0.post0
+rich==13.9.1
+beautifultable==1.1.0
+beautifulsoup4==4.12.3
+alive-progress==3.1.5
+protobuf==5.28.2
+autoslot==2022.12.1
+humanize==4.10.0
+inflection==0.5.1
+jsonpickle==3.3.0
+packaging==24.1
+rich-argparse==1.5.2
+dnspython==2.7.0
+
+# Additional OSINT Sources
+holehe==1.73
+xposedornot==0.0.1
+intelbase==0.0.1
+
+# Development & Utility
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.0
+ipython==8.17.2
+jupyter==1.0.0
