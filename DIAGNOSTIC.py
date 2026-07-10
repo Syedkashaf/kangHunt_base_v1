@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Diagnostic Tool for KangHunt on Android
-Checks all configuration and dependencies
+Verifies configuration, dependencies, and project setup.
 """
 
 import os
@@ -10,11 +10,13 @@ import subprocess
 from pathlib import Path
 
 def print_header(text):
+    """Display a formatted section header."""
     print(f"\n{'='*60}")
     print(f"  {text}")
     print(f"{'='*60}\n")
 
 def check_env_file():
+    """Verify that the .env file exists and contains required API key."""
     print_header("[1] Checking .env File")
     
     env_path = Path(".env")
@@ -47,6 +49,7 @@ def check_env_file():
     return True
 
 def check_dependencies():
+    """Verify all required Python packages are installed."""
     print_header("[2] Checking Python Dependencies")
     
     required_packages = [
@@ -69,6 +72,7 @@ def check_dependencies():
     return all_installed
 
 def check_project_files():
+    """Verify that all required source files exist in the project."""
     print_header("[3] Checking Project Files")
     
     required_files = [
@@ -100,6 +104,7 @@ def check_project_files():
     return all_exist
 
 def check_imports():
+    """Verify that critical Python modules can be imported successfully."""
     print_header("[4] Checking Python Imports")
     
     try:
@@ -131,6 +136,7 @@ def check_imports():
     return True
 
 def check_api_server():
+    """Verify the FastAPI server and its configuration."""
     print_header("[5] Checking FastAPI Server")
     
     try:
@@ -148,7 +154,7 @@ def check_api_server():
             print(f"   → The server will reject all requests")
             return False
         
-        # Check routes
+        # Verify the main scan endpoint is registered
         routes = [route.path for route in app.routes]
         if "/api/v1/scan/{target}" in routes:
             print(f"✅ Scan endpoint registered: /api/v1/scan/{{target}}")
@@ -162,6 +168,7 @@ def check_api_server():
         return False
 
 def print_troubleshooting():
+    """Display common issues and their solutions."""
     print_header("[6] Troubleshooting Guide")
     
     print("""
@@ -194,6 +201,7 @@ def print_troubleshooting():
     """)
 
 def main():
+    """Execute all diagnostic checks and display summary."""
     print("\n" + "="*60)
     print("  🔍 KangHunt Diagnostic Tool (Android Termux)")
     print("="*60)

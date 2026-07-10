@@ -5,9 +5,10 @@ from .base_plugin import BaseOSINTPlugin
 
 class SocialMediaPlugin(BaseOSINTPlugin):
     """
-    Social Media Footprint Detection Plugin
-    Queries multiple social media platforms for username availability and profiles
+    Social Media Footprint Detection Plugin.
+    Queries multiple social media platforms for username availability and profiles.
     """
+    
     def __init__(self):
         self.source_name = "SocialMedia (Profile Detection)"
         self.platforms = {
@@ -19,11 +20,11 @@ class SocialMediaPlugin(BaseOSINTPlugin):
 
     async def execute(self, target: str) -> PluginResponse:
         """
-        Extracts username from email and checks social media presence
-        target format: username or email@domain.com
+        Extracts username from email and checks social media presence.
+        Target format: username or email@domain.com
         """
         try:
-            # Extract username from email
+            # Extract username from email address
             username = target.split("@")[0] if "@" in target else target
             
             found_platforms = []
@@ -36,6 +37,7 @@ class SocialMediaPlugin(BaseOSINTPlugin):
                         headers={"User-Agent": "OSINT-Engine/1.0"}
                     )
                     if gh_response.status_code == 200:
+                        # GitHub account found
                         data = gh_response.json()
                         found_platforms.append({
                             "platform": "GitHub",
@@ -45,8 +47,10 @@ class SocialMediaPlugin(BaseOSINTPlugin):
                             "followers": data.get("followers", 0)
                         })
                 except Exception:
+                    # GitHub API unavailable, skip
                     pass
             
+            # Return results or empty list
             if found_platforms:
                 return PluginResponse(
                     source_name=self.source_name,
@@ -63,6 +67,7 @@ class SocialMediaPlugin(BaseOSINTPlugin):
                 )
                 
         except Exception as e:
+            # Handle any errors during social media detection
             return PluginResponse(
                 source_name=self.source_name,
                 status="failed",

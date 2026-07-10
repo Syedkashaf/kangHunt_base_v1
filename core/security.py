@@ -9,15 +9,21 @@ load_dotenv()
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
 
-# In-memory dictionary to track requests (Format: {"api_key": [timestamp1, timestamp2]})
+# Dictionary to track API request timestamps for rate limiting
 request_tracker = {}
 
-# RATE LIMIT SETTINGS: 5 requests per 60 seconds
+# Rate limiting configuration
 RATE_LIMIT_REQUESTS = 5
 RATE_LIMIT_WINDOW_SEC = 60
 
 async def verify_api_key(api_key: str = Security(api_key_header)):
-    # 1. AUTHENTICATION CHECK
+    """
+    Validates incoming API key and enforces rate limiting.
+    
+    Step 1: Check if the provided API key matches the configured key.
+    Step 2: Track request timestamps and ensure rate limit isn't exceeded.
+    """
+    # Check if the API key is valid
     expected_key = os.getenv("CORE_API_KEY")
     if api_key != expected_key:
         raise HTTPException(
@@ -25,26 +31,27 @@ async def verify_api_key(api_key: str = Security(api_key_header)):
             detail="Access Denied: Invalid API Key"
         )
         
-    # 2. RATE LIMITING LOGIC (Traffic Control)
+    # Rate limiting implementation
     current_time = time.time()
     
+    # Initialize request list for this API key if not exists
     if api_key not in request_tracker:
         request_tracker[api_key] = []
         
-    # Remove timestamps older than the window (60 seconds ago)
+    # Remove timestamps outside the rate limit window
     request_tracker[api_key] = [
         timestamp for timestamp in request_tracker[api_key] 
         if current_time - timestamp < RATE_LIMIT_WINDOW_SEC
     ]
     
-    # Check if the user exceeded the limit
+    # Check if rate limit has been exceeded
     if len(request_tracker[api_key]) >= RATE_LIMIT_REQUESTS:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate Limit Exceeded: Maximum {RATE_LIMIT_REQUESTS} requests per minute allowed."
         )
         
-    # Add current request timestamp and allow access
+    # Record this request and allow access
     request_tracker[api_key].append(current_time)
     
     return api_key

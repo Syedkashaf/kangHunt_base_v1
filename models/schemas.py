@@ -2,6 +2,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 
 class PluginResponse(BaseModel):
+    """Data structure for individual plugin execution results."""
     source_name: str
     status: str
     confidence_score: int = 100
@@ -9,16 +10,16 @@ class PluginResponse(BaseModel):
     message: Optional[str] = None
 
 class ScanReport(BaseModel):
+    """Data structure for raw scan report containing all plugin results."""
     target: str
     total_plugins_executed: int
     successful_plugins: int
     results: List[PluginResponse]
 
-# ==========================================
-# PHASE 10: UNIFIED DATA SCHEMAS INTEGRATION
-# ==========================================
+# Unified data models for consolidated profile output
 
 class UnifiedProfile(BaseModel):
+    """Consolidated user profile data aggregated from multiple OSINT sources."""
     full_name: Optional[str] = "Unknown"
     avatar_url: Optional[str] = None
     gaia_id: Optional[str] = None
@@ -28,6 +29,7 @@ class UnifiedProfile(BaseModel):
     registered_platforms: List[str] = []
 
 class NormalizedScanReport(BaseModel):
+    """Final API response containing normalized profile and raw data."""
     target: str
     status: str = "success"
     profile: UnifiedProfile

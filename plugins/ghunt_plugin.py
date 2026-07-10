@@ -3,11 +3,17 @@ from models.schemas import PluginResponse
 from .base_plugin import BaseOSINTPlugin
 
 class GHuntPlugin(BaseOSINTPlugin):
+    """Plugin for gathering Google account intelligence and associated services."""
+    
     def __init__(self):
         self.source_name = "GHunt"
-        # GHunt is a local reconnaissance tool
+        # GHunt is a local reconnaissance tool for Google intelligence gathering
 
     async def execute(self, target: str) -> PluginResponse:
+        """
+        Perform Google-based reconnaissance on a target email address.
+        Returns mock data structure for Android testing.
+        """
         try:
             # GHunt performs Google-based reconnaissance
             # Using mock response for Android testing
@@ -33,6 +39,7 @@ class GHuntPlugin(BaseOSINTPlugin):
                 message="Google account intelligence gathering complete"
             )
         except Exception as e:
+            # Handle any errors during Google reconnaissance
             return PluginResponse(
                 source_name=self.source_name,
                 status="failed",
